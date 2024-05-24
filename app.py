@@ -1,4 +1,4 @@
-import base64, io, os, cv2
+import base64, io, os, cv2, time
 import numpy as np
 from PIL import Image
 # for our model
@@ -24,7 +24,6 @@ def home():
         app.logger.error(f"Error rendering template: {e}")
         return "An error occurred while rendering the template.", 500
     
-
 @app.route('/upload')
 def detect():
     try:
@@ -39,6 +38,9 @@ def capture_image():
     if request.method == 'POST':
         # Get image data from request (as bytes)
         image_data = request.get_data()
+        # Generate unique filename with timestamp
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        filename = f"image_{timestamp}.jpg"
 
         # Split the data to remove the prefix (optional, depending on client-side implementation)
         # image_data = image_data.split(',')[1]  # If the prefix is always present
@@ -52,7 +54,7 @@ def capture_image():
 
         # Save the image
         try:
-            with open(f"{app.config['UPLOAD_FOLDER']}/captured_image.jpg", "wb") as f:
+            with open(f"{app.config['UPLOAD_FOLDER']}/{filename}", "wb") as f:
                 f.write(decoded_data)
             return "Image captured successfully!"
         except Exception as e:
