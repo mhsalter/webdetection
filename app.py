@@ -1,31 +1,63 @@
-import base64
+import base64, io, os, cv2
 import numpy as np
-import io
-import os
-import cv2
 from PIL import Image
 # for our model
 import tensorflow as tf
-from tensorflow.keras.applications.resnet50 import ResNet50, decode_predictions
+from tensorflow.keras.applications.resnet50 import decode_predictions
 # to retrieve and send back data
-from flask import Flask, render_template, request
+from flask import Flask, request, render_template, redirect
 
 # create a variable named app
-app = Flask(__name__) 
+app = Flask(__name__, static_folder='static')
 IMG_SHAPE = (160, 160)
 
 # Configure upload folder (optional)
-app.config['UPLOAD_FOLDER'] = 'uploads'
+UPLOAD_FOLDER = 'image_capture'  # Define a folder to save captured images (optional)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/')
 def home():
     try:
-        return render_template('index.html')
+        return render_template('home.html')
+    except Exception as e:
+        # Log the error and return an appropriate error message
+        app.logger.error(f"Error rendering template: {e}")
+        return "An error occurred while rendering the template.", 500
+    
+
+@app.route('/upload')
+def detect():
+    try:
+        return render_template('upload.html')
     except Exception as e:
         # Log the error and return an appropriate error message
         app.logger.error(f"Error rendering template: {e}")
         return "An error occurred while rendering the template.", 500
 
+@app.route('/capture', methods=['POST'])
+def capture_image():
+    if request.method == 'POST':
+        # Get image data from request (as bytes)
+        image_data = request.get_data()
+
+        # Split the data to remove the prefix (optional, depending on client-side implementation)
+        # image_data = image_data.split(',')[1]  # If the prefix is always present
+
+        # Decode image data (assuming base64 encoding)
+        try:
+            decoded_data = base64.b64decode(image_data)
+        except Exception as e:
+            print("Error decoding image:", e)
+            return "Error decoding image data"
+
+        # Save the image
+        try:
+            with open(f"{app.config['UPLOAD_FOLDER']}/captured_image.jpg", "wb") as f:
+                f.write(decoded_data)
+            return "Image captured successfully!"
+        except Exception as e:
+            print("Error saving image:", e)
+            return "Error saving captured image"
 
 @app.route('/predict', methods=['POST'])
 def predict():

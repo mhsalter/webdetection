@@ -1,0 +1,29 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+  }
+  
+  .header {
+    background-color: #00ffbf;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .header nav {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .header nav a {
+    text-decoration: none;
+    margin: 10px;
+    color: #333;
+  }
+  
+  .footer {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+  }
+  
