@@ -5,15 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image Prediction App</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script>
+    function validateForm() {
+      var image = document.getElementById('image').files[0];
+      if (!image) {
+        alert('Please select an image to upload.');
+        return false;
+      }
+      var fileType = image.type;
+      var validImageTypes = ["image/jpeg", "image/png"];
+      if (!validImageTypes.includes(fileType)) {
+        alert('Please upload a valid image file (jpg, jpeg, png).');
+        return false;
+      }
+      return true;
+    }
+  </script>
 </head>
 <body>
   <div class="container">
-      <header class="header">
-        <h1>Image Prediction</h1>
-        <a href="/">Home</a>
-      </header>
+    <header class="header">
+      <h1>Image Prediction</h1>
+      <a href="/">Home</a>
+    </header>
 
-    <div class="content">  <form method="POST" enctype="multipart/form-data" action="/predict">
+    <div class="content">
+      <p class="description">Prediksi gambar pada web ini hanya dapat memprediksi kelas-kelas berikut:</p>
+      <table class="class-table">
+        <tr>
+          <td>Dadar Gulung</td>
+          <td>Grontol</td>
+          <td>Klepon</td>
+        </tr>
+        <tr>
+          <td>Kue Lapis</td>
+          <td>Kue Lumpur</td>
+          <td>Lumpia</td>
+        </tr>
+        <tr>
+          <td>Putu Ayu</td>
+          <td>Serabi</td>
+          <td>Wajik</td>
+        </tr>
+      </table>
+
+      <form method="POST" enctype="multipart/form-data" action="/predict" onsubmit="return validateForm()">
         <label for="image">Select image to upload (jpg, jpeg, png only):</label>
         <input type="file" name="image" id="image" accept=".jpg,.jpeg,.png">
         <br>

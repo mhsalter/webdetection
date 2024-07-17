@@ -51,28 +51,6 @@ def detect():
         # Log the error and return an appropriate error message
         app.logger.error(f"Error rendering template: {e}")
         return "An error occurred while rendering the template.", 500
-    if request.method == 'POST':
-        # Get image data from request (as bytes)
-        image_data = request.get_data()
-        # Generate unique filename with timestamp
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        filename = f"image_{timestamp}.jpg"
-
-        # Decode image data (assuming base64 encoding)
-        try:
-            decoded_data = base64.b64decode(image_data)
-        except Exception as e:
-            print("Error decoding image:", e)
-            return "Error decoding image data"
-
-        # Save the image
-        try:
-            with open(f"{app.config['UPLOAD_FOLDER']}/{filename}", "wb") as f:
-                f.write(decoded_data)
-            return "Image captured successfully!"
-        except Exception as e:
-            print("Error saving image:", e)
-            return "Error saving captured image"
 
 @app.route('/predict', methods=['POST'])
 def predict_image():
