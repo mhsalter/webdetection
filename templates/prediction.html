@@ -1,18 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prediction Results</title>
-  </head>
-  <body>
-    <h1>Prediction Results</h1>
-    <img
-      src="{{ url_for('static', filename='uploads/image.jpg') }}"
-      alt="Uploaded Image"
-      width="200"
-    />
-    <p>Predicted Class: {{ prediction[0] }}</p>
-    <p>Probability: {{ prediction[1] }}</p>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prediction Results</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Prediction Results</h1>
+      <a href="/">Home</a>
+    </header>
+
+    <div class="content">
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nama Model</th>
+            <th>Predicted Class</th>
+            <th>Probability</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in prediction %}
+          <tr>
+            <td>{{ item['nama model'] }}</td>
+            <td>{{ item['nama'] }}</td>
+            <td>{{ item['probability'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
 </html>

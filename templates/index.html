@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Klasifikasi Ujaran Kebencian</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='public/style.css')}}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="container centered-form">
+    <div class="card-container">
+      <!-- Single News Title Prediction -->
+      <div class="card card-whole-body">
+        <div class="d-flex p-1">
+          <h2 class="font-weight-bold flex-grow-1">
+            Apa itu Ujaran Kebencian?
+          </h2>
+          <button class="collapse-button collapsed" type="button" data-toggle="collapse" data-target="#collapseContent"
+            aria-expanded="false" aria-controls="collapseContent">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        <div id="collapseContent" class="collapse">
+          <div class="card-body p-0">
+            <p class="">
+            <b>Ujaran kebencian</b> atau dalam bahasa Inggris dikenal sebagai <b>hate speech</b>, adalah ungkapan, dorongan, 
+              atau hasutan bagi sekelompok orang ataupun individu yang dicirikan oleh sifat tertentu seperti ras, jenis kelamin, etnis, agama, 
+              kebangsaan, atau fisik.
+            </p>
+            <p>
+              <b>Bahaya dari ujaran kebencian</b> cukup signifikan. Ujaran kebencian berdampak sangat buruk pada individu dan masyarakat. 
+              Itu menciptakan iklim yang penuh ketakutan, intoleransi, dan kekerasan. Kata-kata yang penuh kebencian dapat merusak 
+              harga diri dan perasaan aman suatu individu yang dapat menyebabkan stres/depresi dan bahkan berujung kematian (bunuh diri).
+            </p>
+            <p>
+              <b>Sebagai penanganan dari ujaran kebencian</b>, individu dapat melakukan laporan terhadap pihak berwajib, wali, atau orang dewasa lain.
+              Selain itu, individu juga dapat melakukan blokir user dan/atau kalimat yang ingin di hindari pada platform media sosial yang di inginkan.
+              <b>Sebagai tindakan pencegahan</b> yang dapat dilakukan adalah meningkatkan kesadaran akan bahaya ujaran kebencian, meningkatkan literasi masyarakat,
+              meningkatkan kemampuan polisi siber, dan mengajak masyarakat untuk berdiskusi dengan bijak.
+            </p>
+            Daftar Pustaka<br/>
+            <small>
+              BINUS. (2023) Pengertian, Dampak, dan Cara Mengatasi Ujaran Kebencian di Media Sosial
+            </small>
+          </div>
+        </div>
+      </div>
+      <!-- Single News Title Prediction Form -->
+      <div class="card card-whole-body">
+        <div class="card-body">
+          <div style="display:flex;justify-content: space-between;">
+            <h5 class="card-title">Komentar/Tweet Satuan</h5>
+            <a class="btn btn-warning" style="color: black;" id="modal-button" data-toggle="modal"
+              data-target="#myModal"><b>Panduan</b></a>
+          </div>
+          <div class="modal" id="myModal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Panduan Komentar Satuan</h4>
+                  <span type="button" class="close" data-dismiss="modal">&times;</span>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  Untuk meakukan prediksi jenis ujaran kebencian kamu dapat mengikuti langkah-langkah berikut:<br/>
+                  <ol type="1">
+                    <li>Siapkan Komentar/Tweet yang ingin diprediksi</li>
+                    <li>Masukkan komentar yang ingin diprediksi pada kolom input yang tersedia</li>
+                    <li>Tekan tombol <b>Kirim</b> untuk memulai prediksi</li>
+                    <li>Hasil prediksi ujaran kebencian akan muncul pada bagian</li>
+                  </ol>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('index') }}">
+            <div class="form-group">
+              <label for="newsTitle">Masukkan Komentar yang ingin diprediksi</label>
+              <textarea class="form-control" id="newsTitle" rows="3" placeholder="Masukkan Komentar"
+                name="komen-single">{% if komen %}{{komen}}{% endif %}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Kirim</button>
+          </form>
+          <div class="whole-container">
+            {% if inference %}
+            <span style="display: inline-block;padding-top: 10px;font-weight: bolder;">Klasifikasi Kalimat Termasuk
+              dalam Kateogri:</span>
+            {%endif%}
+            <div class="tag-container pt-2">
+              {% if 'HS' in confident_prediction %} <span class="tag hs">Ujaran Kebencian</span> {%endif%}
+              {% if 'abusive' in confident_prediction %} <span class="tag abusive">Kalimat Kasar</span> {%endif%}
+              {% if 'HS_Individual' in confident_prediction %} <span class="tag category">Ujaran Kebencian Terhadap Individu</span> {%endif%}
+              {% if 'HS_Group' in confident_prediction %} <span class="tag category">Ujaran Kebencian Terhadap Grup</span> {%endif%}
+              {% if 'HS_Religion' in confident_prediction %} <span class="tag category">Ujaran Kebencian Terhadap Agama</span> {%endif%}
+              {% if 'HS_Race' in confident_prediction %} <span class="tag category">Ujaran Kebencian Terhadap Ras</span> {%endif%}
+              {% if 'HS_Physical' in confident_prediction %} <span class="tag category">Ujaran Kebencian Terhadap Fisik</span> {%endif%}
+              {% if 'HS_Gender' in confident_prediction %} <span class="tag category">Ujaran Kebencian Terhadap Gender</span> {%endif%}
+              {% if 'HS_Other' in confident_prediction %} <span class="tag category">Jenis Ujaran Kebencian Lainnya</span> {%endif%}
+              {% if 'HS_Weak' in confident_prediction %} <span class="tag intensity">Ujaran Kebencian Weak</span> {%endif%}
+              {% if 'HS_Moderate' in confident_prediction %} <span class="tag intensity">Ujaran Kebencian Moderate</span> {%endif%}
+              {% if 'HS_Strong' in confident_prediction %} <span class="tag intensity">Ujaran Kebencian Strong</span> {%endif%}
+              {% if 'PS' in confident_prediction %} <span class="tag ps">Positif/Netral</span> {%endif%}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Bulk News Title Category Prediction -->
+      <div class="card card-whole-body">
+        <div class="card-body">
+          <div style="display:flex;justify-content: space-between;padding-bottom: 10px;">
+            <h5 class="card-title" style="margin: 7px 0px 0px;">Prediksi Komentar/Tweet dalam jumlah banyak</h5>
+            <a class="btn btn-warning" style="color: black;" id="modal-button" data-toggle="modal"
+              data-target="#myModal2"><b>Panduan</b></a>
+          </div>
+          <div class="modal" id="myModal2">
+            <div class="modal-dialog">
+              <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Panduan Unggah Berkas Komentar</h4>
+                  <span type="button" class="close" data-dismiss="modal">&times;</span>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body">
+                  Untuk melakukan prediksi jenis ujaran kebencian pada komentar/tweet dalam jumlah banyak, kamu dapat mengikuti langkah-langkah berikut:<br/>
+                  <ol type="1">
+                    <li>Siapkan berkas yang berisi komentar/tweet dalam format CSV/XLS/XLSX</li>
+                    <li>Pastikan komentar/tweet yang ingin diprediksi berada pada kolom pertama/paling kiri pada berkas CSV/XLS/XLSX (pada kolom "A")</li>
+                    <li>Data komentar/tweet tidak perlu ada nama kolom (Header)</li>
+                    <li>Unggah berkas komentar/tweet pada kolom input yang tersedia</li>
+                    <li>Tekan tombol <b>Unggah dan Kirim</b> untuk memulai prediksi</li>
+                    <li>Hasil prediksi ujaran kebencian akan terunduh kembali secara otomatis</li>
+                  </ol>
+                  Kamu dapat mengunduh contoh berkas pada tombol dibawah
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer" style="display: flex;justify-content: space-between;">
+                  <a type="button" class="btn btn-success" href="{{ url_for('download_example') }}">Contoh Format Berkas</a>
+                  <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <form method="post" action="{{ url_for('index') }}" enctype="multipart/form-data">
+            <div class="form-group file-input-column">
+              <label class="custom-file-upload">
+                <input type="file" name="file"
+                  accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                <span>Unggah Berkas (CSV/XLS)</span>
+              </label>
+              <small class="form-text text-muted">Ukuran maksimal berkas: 1MB</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Unggah dan Kirim</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="{{ url_for('static', filename='public/script.js')}}"></script>
+  <script src="scripts.js"></script>
+</body>
+
+</html>

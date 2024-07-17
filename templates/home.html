@@ -1,73 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <header class="header">
-      <h1>My Website</h1>
-      <nav>
-        <a href="http://127.0.0.1:5000/">Home</a>
-        <a href="http://127.0.0.1:5000/upload">Upload</a>
-      </nav>
-    </header>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Prediction App</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="container">
+      <header class="header">
+        <h1>Image Prediction</h1>
+        <a href="/">Home</a>
+      </header>
 
-    <main>
-      <video id="videoElement" width="320" height="240" autoplay></video>
-      <button id="captureButton">Capture</button>
+    <div class="content">  <form method="POST" enctype="multipart/form-data" action="/predict">
+        <label for="image">Select image to upload (jpg, jpeg, png only):</label>
+        <input type="file" name="image" id="image" accept=".jpg,.jpeg,.png">
+        <br>
+        <input type="submit" value="Predict">
+      </form>
 
-      <script>
-        const video = document.getElementById("videoElement");
-        const captureButton = document.getElementById("captureButton");
-      
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices
-            .getUserMedia({ video: true })
-            .then((stream) => {
-              video.srcObject = stream;
-            })
-            .catch((error) => {
-              console.error("Error accessing camera:", error);
-            });
-        } else {
-          console.error("Camera access not supported");
-        }
-      
-        captureButton.addEventListener("click", () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          const context = canvas.getContext("2d");
-          context.drawImage(video, 0, 0);
-      
-          const imageData = canvas.toDataURL("image/jpeg");
-      
-          // Send image data to server using fetch or AJAX
-          fetch("/capture", {
-            method: "POST",
-            body: imageData,
-          })
-            .then((response) => response.text())
-            .then((message) => {
-              console.log(message); // Display success or error message
-            })
-            .catch((error) => {
-              console.error("Error sending image:", error);
-            });
-        });
-      </script>
-      
-    </main>
+      {% if message %}
+        <p style="color: red">{{ message }}</p>
+      {% endif %}
 
-    <footer class="footer">
-      <p>&copy; 2024 My Website. All Rights Reserved.</p>
-    </footer>
-  </body>
+      <div id="prediction-results"></div>
+    </div>
+  </div>  
+</body>
 </html>
-
