@@ -4,11 +4,10 @@ from PIL import Image
 
 # for our model
 import tensorflow as tf
-from tensorflow.keras.layers import BatchNormalization
-
+import cv2
 
 # to retrieve and send back data
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template
 
 # create a variable named app
 app = Flask(__name__, static_folder='static')
@@ -24,25 +23,73 @@ class_labels = ['Dadar Gulung',
                 'Serabi',
                 'Wajik']
 
-def preprocess_image(image, model):
-    # Convert RGB image to grayscale
-    # image = tf.image.rgb_to_grayscale(image)
-    # Resize the image to match model input size
-    img = tf.image.resize(image, (model.input_shape[1], model.input_shape[2]))
-    # Normalize pixel values (usually between 0 and 1)
-    img = img / 255.0
-    # Add an extra dimension for batch prediction (if needed)
-    img = tf.expand_dims(img, axis=0)
-    return img
+# def preprocess_image(image, model):
+#     # Resize the image to match model input size
+#     img = tf.image.resize(image, (model.input_shape[1], model.input_shape[2]))
 
-model_MobileNetV1_v1 = tf.keras.models.load_model('model\\model_MobileNetV1-82_v1.h5')
-model_MobileNetV2_v1 = tf.keras.models.load_model('model\\model_MobileNetV2-82_v1.h5')
-model_MobileNetV3Small_v1 = tf.keras.models.load_model('model\\model_MobileNetV3Small-82_v1.h5')
-model_MobileNetV3Large_v1 = tf.keras.models.load_model('model\\model_MobileNetV3Large-82_v1.h5')
-model_VGG16 = tf.keras.models.load_model('model\\model_VGG16-82_v1.h5')   
-model_VGG19 = tf.keras.models.load_model('model\\model_VGG19-82_v1.h5')   
+#     # Normalize pixel values (usually between 0 and 1)
+#     img = img / 255.0
 
+#     # Add an extra dimension for batch prediction (if needed)
+#     img = tf.expand_dims(img, axis=0)
+#     return img
+
+# Load TFLite models and allocate tensors
+interpreter_m1 = tf.lite.Interpreter(model_path="model\\model_MobileNetV1-82_v1.tflite")
+interpreter_m2 = tf.lite.Interpreter(model_path="model\\model_MobileNetV2-82_v1.tflite")
+interpreter_m3small = tf.lite.Interpreter(model_path="model\\model_MobileNetV3Small-82_v1.tflite")
+interpreter_m3large = tf.lite.Interpreter(model_path="model\\model_MobileNetV3Large-82_v1.tflite")
+interpreter_vgg16 = tf.lite.Interpreter(model_path="model\\VGG16-82_v1.tflite")
+interpreter_vgg19 = tf.lite.Interpreter(model_path="model\\VGG19-82_v1.tflite")
+
+interpreters = {
+    "MobileNetV1": interpreter_m1,
+    "MobileNetV2": interpreter_m2,
+    "MobileNetV3Small": interpreter_m3small,
+    "MobileNetV3Large": interpreter_m3large,
+    "VGG16": interpreter_vgg16,
+    "VGG19": interpreter_vgg19,
+}
+
+for interpreter in interpreters.values():
+    interpreter.allocate_tensors()
+
+# Get input details from any interpreter since they share the same input shape
+input_details = interpreter_m1.get_input_details()
+image_size_x = input_details[0]['shape'][2]
+image_size_y = input_details[0]['shape'][1]
+
+IMAGE_MEAN = 0.0
+IMAGE_STD = 1.0
+
+def preprocess_image(image: Image.Image):
+    # Convert image to numpy array
+    image = np.array(image)
     
+    # Crop the image to a square
+    crop_size = min(image.shape[0], image.shape[1])
+    top = (image.shape[0] - crop_size) // 2
+    left = (image.shape[1] - crop_size) // 2
+    cropped_image = image[top:top + crop_size, left:left + crop_size]
+
+    # Resize the image to the required dimensions with nearest neighbor interpolation
+    resized_image = cv2.resize(cropped_image, (image_size_x, image_size_y), interpolation=cv2.INTER_NEAREST)
+    # resized_image = cv2.resize(cropped_image, (image_size_x, image_size_y), interpolation=cv2.INTER_LINEAR)
+    # resized_image = image.resize((image_size_x, image_size_y), Image.BILINEAR)
+    
+    # Normalize the image
+    normalized_image = (resized_image - IMAGE_MEAN) / IMAGE_STD
+
+    return normalized_image.astype(np.float32)
+
+def predict_with_model(interpreter, image):
+    input_data = np.expand_dims(image, axis=0)
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+    interpreter.invoke()
+    output_details = interpreter.get_output_details()
+    output_data = interpreter.get_tensor(output_details[0]['index'])
+    return np.squeeze(output_data) 
+
 @app.route('/')
 def detect():
     try:
@@ -61,52 +108,18 @@ def predict_image():
         # Check if a file is uploaded
         if uploaded_file.filename != '':
             # Get uploaded image data
-            img_bytes = request.files.get('image')
-            # Preprocess the image data in memory
-            img_bytes = tf.image.decode_image(img_bytes.read(), channels=3)
-
-            preprocessed_imagev1        = preprocess_image(image=img_bytes, model=model_MobileNetV1_v1)
-            preprocessed_imagev2        = preprocess_image(image=img_bytes, model=model_MobileNetV2_v1)
-            preprocessed_imagev3small   = preprocess_image(image=img_bytes, model=model_MobileNetV3Small_v1)
-            preprocessed_imagev3large   = preprocess_image(image=img_bytes, model=model_MobileNetV3Large_v1)
-            preprocessed_imagevgg16   = preprocess_image(image=img_bytes, model=model_VGG16)
-            preprocessed_imagevgg19   = preprocess_image(image=img_bytes, model=model_VGG19)
-
-            # Make prediction using the model
-            predictions_mobilenetv1         = model_MobileNetV1_v1.predict(preprocessed_imagev1)[0]
-            predictions_mobilenetv2         = model_MobileNetV2_v1.predict(preprocessed_imagev2)[0]
-            predictions_mobilenetv3small    = model_MobileNetV3Small_v1.predict(preprocessed_imagev3small)[0]
-            predictions_mobilenetv3large    = model_MobileNetV3Large_v1.predict(preprocessed_imagev3large)[0]
-            predictions_vgg16               = model_VGG16.predict(preprocessed_imagevgg16)[0]
-            predictions_vgg19               = model_VGG19.predict(preprocessed_imagevgg19)[0]
-
-            index_m1        = predictions_mobilenetv1.argmax() 
-            index_m2        = predictions_mobilenetv2.argmax()
-            index_m3small   = predictions_mobilenetv3small.argmax()
-            index_m3large   = predictions_mobilenetv3large.argmax()
-            index_vgg16     = predictions_vgg16.argmax()
-            index_vgg19     = predictions_vgg19.argmax()
-            
-            predictions = [
-                {'nama': class_labels[index_m1],
-                'probability': predictions_mobilenetv1[index_m1],
-                'nama model': 'MobileNetV1'},
-                {'nama': class_labels[index_m2],
-                'probability': predictions_mobilenetv2[index_m2],
-                'nama model': 'MobileNetV2'},
-                {'nama': class_labels[index_m3small],
-                'probability': predictions_mobilenetv3small[index_m3small],
-                'nama model': 'MobileNetV3Small'},
-                {'nama': class_labels[index_m3large],
-                'probability': predictions_mobilenetv3large[index_m3large],
-                'nama model': 'MobileNetV3Large'},    
-                {'nama': class_labels[index_vgg16],
-                'probability': predictions_vgg16[index_vgg16],
-                'nama model': 'VGG16'},    
-                {'nama': class_labels[index_vgg19],
-                'probability': predictions_vgg19[index_vgg19],
-                'nama model': 'VGG19'},     
-            ]
+            img = Image.open(uploaded_file.stream).convert('RGB')
+            # Preprocess the image data
+            processed_image = preprocess_image(img)
+        
+            predictions = []
+            for model_name, interpreter in interpreters.items():
+                prediction = predict_with_model(interpreter, processed_image)
+                index = np.argmax(prediction)
+                predictions.append({
+                    'nama': class_labels[index],
+                    'nama model': model_name
+                })
             
 
             # Return prediction results
