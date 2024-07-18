@@ -23,17 +23,6 @@ class_labels = ['Dadar Gulung',
                 'Serabi',
                 'Wajik']
 
-# def preprocess_image(image, model):
-#     # Resize the image to match model input size
-#     img = tf.image.resize(image, (model.input_shape[1], model.input_shape[2]))
-
-#     # Normalize pixel values (usually between 0 and 1)
-#     img = img / 255.0
-
-#     # Add an extra dimension for batch prediction (if needed)
-#     img = tf.expand_dims(img, axis=0)
-#     return img
-
 # Load TFLite models and allocate tensors
 interpreter_m1 = tf.lite.Interpreter(model_path="model\\model_MobileNetV1-82_v1.tflite")
 interpreter_m2 = tf.lite.Interpreter(model_path="model\\model_MobileNetV2-82_v1.tflite")
