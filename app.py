@@ -28,8 +28,8 @@ interpreter_m1 = tf.lite.Interpreter(model_path="model\\model_MobileNetV1-82_v1.
 interpreter_m2 = tf.lite.Interpreter(model_path="model\\model_MobileNetV2-82_v1.tflite")
 interpreter_m3small = tf.lite.Interpreter(model_path="model\\model_MobileNetV3Small-82_v1.tflite")
 interpreter_m3large = tf.lite.Interpreter(model_path="model\\model_MobileNetV3Large-82_v1.tflite")
-interpreter_vgg16 = tf.lite.Interpreter(model_path="model\\VGG16-82_v1.tflite")
-interpreter_vgg19 = tf.lite.Interpreter(model_path="model\\VGG19-82_v1.tflite")
+interpreter_vgg16 = tf.lite.Interpreter(model_path="model\\model_VGG16-82_v1.tflite")
+interpreter_vgg19 = tf.lite.Interpreter(model_path="model\\model_VGG19-82_v1.tflite")
 
 interpreters = {
     "MobileNetV1": interpreter_m1,
