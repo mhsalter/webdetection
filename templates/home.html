@@ -6,16 +6,66 @@
   <title>Image Prediction App</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <script>
-    function validateForm() {
-      var image = document.getElementById('image').files[0];
-      if (!image) {
-        alert('Please select an image to upload.');
-        return false;
+    let imageUploaded = false;
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      const uploadBox = document.getElementById('upload-box');
+      const previewImage = document.getElementById('preview-image');
+      const clearButton = document.getElementById('clear-button');
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImage.src = e.target.result;
+          uploadBox.style.borderColor = '#4CAF50';
+          clearButton.classList.add('show');
+          imageUploaded = true;
+        };
+        reader.readAsDataURL(file);
       }
-      var fileType = image.type;
-      var validImageTypes = ["image/jpeg", "image/png"];
-      if (!validImageTypes.includes(fileType)) {
-        alert('Please upload a valid image file (jpg, jpeg, png).');
+    }
+
+    function clearImage() {
+      const uploadBox = document.getElementById('upload-box');
+      const previewImage = document.getElementById('preview-image');
+      const fileInput = document.getElementById('image');
+      const clearButton = document.getElementById('clear-button');
+      const predictionResults = document.getElementById('prediction-results');
+
+      fileInput.value = '';
+      previewImage.src = '';
+      uploadBox.style.borderColor = '#4CAF50';
+      clearButton.classList.remove('show');
+      imageUploaded = false;
+      predictionResults.innerHTML = '';
+
+      // Make a request to clear the server-side image
+      fetch('/clear_image', {
+        method: 'POST',
+      });
+    }
+
+    function handleDrop(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('image');
+      fileInput.files = event.dataTransfer.files;
+      handleFileUpload({ target: fileInput });
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      const uploadBox = document.getElementById('upload-box');
+      uploadBox.style.borderColor = '#2e7d32';
+    }
+
+    function handleDragLeave(event) {
+      const uploadBox = document.getElementById('upload-box');
+      uploadBox.style.borderColor = '#4CAF50';
+    }
+
+    function validateForm() {
+      if (!imageUploaded) {
+        alert('Please select an image to upload.');
         return false;
       }
       return true;
@@ -49,18 +99,45 @@
         </tr>
       </table>
 
-      <form method="POST" enctype="multipart/form-data" action="/predict" onsubmit="return validateForm()">
-        <label for="image">Select image to upload (jpg, jpeg, png only):</label>
-        <input type="file" name="image" id="image" accept=".jpg,.jpeg,.png">
-        <br>
-        <input type="submit" value="Predict">
-      </form>
+      <form method="POST" enctype="multipart/form-data" action="/predict" onsubmit="return validateForm();">
+        <div id="upload-box" class="upload-box" onclick="document.getElementById('image').click();" ondrop="handleDrop(event);" ondragover="handleDragOver(event);" ondragleave="handleDragLeave(event);">
+          <p>Click to upload or drag and drop an image here (jpg, jpeg, png only)</p>
+          <input type="file" name="image" id="image" accept=".jpg,.jpeg,.png" onchange="handleFileUpload(event);">
+          <img id="preview-image" src="{{ preview_image_url }}" alt="Image Preview">
+        </div>
+        
+        <div class="button-container">
+          <input type="submit" value="Predict" class="predict-button">
+          <button type="button" id="clear-button" class="clear-button" onclick="clearImage()">Clear Image</button>
+        </div>
 
       {% if message %}
         <p style="color: red">{{ message }}</p>
       {% endif %}
-
-      <div id="prediction-results"></div>
+    </div>
+    <div id="prediction-results">
+      {% if prediction %}
+        <h2>Prediction Results</h2>
+        <div id="border-box">
+          {% for item in prediction %}
+            <div class="model-box">
+              <div class="model-name">{{ item['nama model'] }}</div>
+              <div class="prediction">
+                <span class="prediction-name">{{ item['nama'] }}</span>
+                <span class="prediction-percentage">{{ '%.2f'|format(item['Persentase']) }}%</span>
+              </div>
+              <div class="prediction-class">
+                {% for class_name, class_percentage in item['sorted_classes'] %}
+                <div class="prediction-class-item">
+                  <span class="prediction-class-name">{{ class_name }}</span>
+                  <span class="prediction-class-percentage">{{ '%.2f'|format(class_percentage * 100) }}%</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>  
 </body>

@@ -1,6 +1,7 @@
 import base64, io, os, time
 import numpy as np
 from PIL import Image
+from io import BytesIO
 
 # for our model
 import tensorflow as tf
@@ -96,8 +97,16 @@ def predict_image():
         
         # Check if a file is uploaded
         if uploaded_file.filename != '':
+            # Save the file temporarily to serve it back as a preview
+            preview_image_url = uploaded_file
+            
             # Get uploaded image data
             img = Image.open(uploaded_file.stream).convert('RGB')
+            buffered = BytesIO()
+            img.save(buffered, format="PNG")
+            img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            preview_image_url = f"data:image/png;base64,{img_base64}"
+            
             # Preprocess the image data
             processed_image = preprocess_image(img)
         
@@ -105,21 +114,37 @@ def predict_image():
             for model_name, interpreter in interpreters.items():
                 prediction = predict_with_model(interpreter, processed_image)
                 index = np.argmax(prediction)
+                sorted_classes = sorted(zip(class_labels, prediction), key=lambda x: x[1], reverse=True)
                 predictions.append({
                     'nama': class_labels[index],
-                    'nama model': model_name
+                    'nama model': model_name,
+                    'Persentase': round(prediction[index] * 100, 2),
+                    'sorted_classes': sorted_classes
                 })
-            
 
             # Return prediction results
-            return render_template('prediction.html', prediction=predictions)
+            return render_template('home.html', prediction=predictions, preview_image_url=preview_image_url, class_labels=class_labels)
 
         else:
             # Handle case where no file is uploaded
-            return render_template('view/index.html', message="No file selected")
+            return render_template('home.html', message="No file selected")
     else:
-    # Handle non-POST requests (optional)
+        # Handle non-POST requests (optional)
         return "This route only accepts POST requests"
+
+@app.route('/clear_image', methods=['POST'])
+def clear_image():
+    # Clear the uploaded image file and reset the preview
+    try:
+        # Retrieve the image file name from the last prediction (or any method you prefer)
+        file_name = request.form.get('image_name')
+        if file_name:
+            file_path = os.path.join(UPLOAD_FOLDER, file_name)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        return '', 204
+    except Exception as e:
+        return str(e), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
