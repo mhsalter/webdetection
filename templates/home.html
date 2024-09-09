@@ -12,37 +12,15 @@
       const file = event.target.files[0];
       const uploadBox = document.getElementById('upload-box');
       const previewImage = document.getElementById('preview-image');
-      const clearButton = document.getElementById('clear-button');
       if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
           previewImage.src = e.target.result;
           uploadBox.style.borderColor = '#4CAF50';
-          clearButton.classList.add('show');
           imageUploaded = true;
         };
         reader.readAsDataURL(file);
       }
-    }
-
-    function clearImage() {
-      const uploadBox = document.getElementById('upload-box');
-      const previewImage = document.getElementById('preview-image');
-      const fileInput = document.getElementById('image');
-      const clearButton = document.getElementById('clear-button');
-      const predictionResults = document.getElementById('prediction-results');
-
-      fileInput.value = '';
-      previewImage.src = '';
-      uploadBox.style.borderColor = '#4CAF50';
-      clearButton.classList.remove('show');
-      imageUploaded = false;
-      predictionResults.innerHTML = '';
-
-      // Make a request to clear the server-side image
-      fetch('/clear_image', {
-        method: 'POST',
-      });
     }
 
     function handleDrop(event) {
@@ -108,7 +86,6 @@
         
         <div class="button-container">
           <input type="submit" value="Predict" class="predict-button">
-          <button type="button" id="clear-button" class="clear-button" onclick="clearImage()">Clear Image</button>
         </div>
 
       {% if message %}

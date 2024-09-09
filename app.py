@@ -132,19 +132,5 @@ def predict_image():
         # Handle non-POST requests (optional)
         return "This route only accepts POST requests"
 
-@app.route('/clear_image', methods=['POST'])
-def clear_image():
-    # Clear the uploaded image file and reset the preview
-    try:
-        # Retrieve the image file name from the last prediction (or any method you prefer)
-        file_name = request.form.get('image_name')
-        if file_name:
-            file_path = os.path.join(UPLOAD_FOLDER, file_name)
-            if os.path.exists(file_path):
-                os.remove(file_path)
-        return '', 204
-    except Exception as e:
-        return str(e), 500
-
 if __name__ == '__main__':
     app.run(debug=True)
